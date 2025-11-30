@@ -10,6 +10,7 @@ require_relative "reseg/core/segment"
 require_relative "reseg/core/flight_segment"
 require_relative "reseg/core/hotel_segment"
 require_relative "reseg/core/train_segment"
+require_relative "reseg/parsing/segment_parser"
 require_relative "reseg/parsing/statement"
 require_relative "reseg/parsing/scanner"
 
