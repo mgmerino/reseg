@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
     end
   end
   spec.add_dependency "activesupport", ">= 7.0", "< 9.0"
+  spec.add_dependency "airports", "~> 1.12.0"
 
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
