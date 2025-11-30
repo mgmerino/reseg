@@ -2,6 +2,7 @@
 
 require "active_support"
 require "active_support/time"
+require "airports"
 
 require_relative "reseg/version"
 require_relative "reseg/context"
