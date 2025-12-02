@@ -100,6 +100,13 @@ module Reseg
         last_segment.starts_at - first_segment.starts_at
       end
 
+      def to_s
+        <<~TXT
+          TRIP TO #{destination_iata}
+          #{pretty_segments.join("\n")}
+        TXT
+      end
+
       private
 
       def format_date_time(date_time)
@@ -125,6 +132,23 @@ module Reseg
         # no segment found, ambiguous
         nil
       end
+
+      # rubocop:disable Metrics/AbcSize
+      def pretty_segments
+        segments.map do |s|
+          case s.type
+          when :flight
+            "Flight from #{s.origin_iata} to #{s.destination_iata} at #{format_date_time(s.departure_at)} "\
+            "to #{format_time(s.arrival_at)}"
+          when :hotel
+            "Hotel at #{s.location_iata} on #{s.check_in_on} to #{s.check_out_on}"
+          when :train
+            "Train from #{s.origin_iata} to #{s.destination_iata} at #{format_date_time(s.departure_at)} "\
+            "to #{format_time(s.arrival_at)}"
+          end
+        end
+      end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end
