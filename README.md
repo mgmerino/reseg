@@ -1,39 +1,107 @@
 # Reseg
 
-TODO: Delete this and the text below, and describe your gem
+A Ruby gem to parse and format REservation SEGments into organized trips.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/reseg`. To experiment with that code, run `bin/console` for an interactive prompt.
+Reseg takes raw reservation data containing flights, trains, and hotel bookings, groups them into trips based on a traveler's home base city, and outputs human-readable itineraries.
 
-## Installation
+### Format Specifications
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+| Field | Format | Example |
+|-------|--------|---------|
+| IATA Code | 3-letter code | `SVQ`, `BCN`, `MAD` |
+| Date | ISO 8601 extended | `2025-01-05` |
+| Time | 24-hour format | `20:40`, `09:30` |
 
-Install the gem and add to the application's Gemfile by executing:
+## How Trip Building Works
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+1. **Parsing**: The input is scanned line by line, extracting reservation blocks and segment data
+2. **Segment Creation**: Each segment line is parsed into typed segment objects (Flight, Train, Hotel)
+3. **Sorting**: All segments are sorted chronologically by start time
+4. **Trip Assembly**:
+   - A trip begins when a flight/train departs from the base city
+   - A trip ends when a flight/train arrives at the base city
+   - Connecting flights within 24 hours are grouped together
+5. **Hotel Insertion**: Hotel segments are matched to trips based on location and dates, then inserted after the corresponding arrival segment
+
+## Architecture
+
 ```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+ResegFormatter
+├── Core/
+│   ├── Segment (base class)
+│   ├── FlightSegment
+│   ├── TrainSegment
+│   ├── HotelSegment
+│   ├── Reservation
+│   └── Trip
+├── Parsing/
+│   ├── Scanner (tokenizes input)
+│   ├── Statement (token wrapper)
+│   └── SegmentParser (parses segment lines)
+├── ReservationBuilder (groups segments into reservations)
+├── TripBuilder (groups segments into trips)
+└── Context (holds base city and time zone)
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+### Basic Usage
 
-## Development
+```ruby
+require 'reseg'
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+input = <<~INPUT
+  RESERVATION
+  SEGMENT: Flight SVQ 2025-01-05 20:40 -> BCN 22:10
+  SEGMENT: Flight BCN 2025-01-10 10:30 -> SVQ 11:50
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+  RESERVATION
+  SEGMENT: Hotel BCN 2025-01-05 -> 2025-01-10
+INPUT
 
-## Contributing
+# Format as a human-readable string
+output = Reseg.format(input, based_city: "SVQ")
+puts output
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/reseg.
+# Output:
+# TRIP TO BCN
+# Flight from SVQ to BCN at 2025-01-05 20:40 to 22:10
+# Hotel at BCN on 2025-01-05 to 2025-01-10
+# Flight from BCN to SVQ at 2025-01-10 10:30 to 11:50
+```
 
-## License
+### Programmatic Access
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+For more control, use the `parse` method to get structured trip objects:
+
+```ruby
+result = Reseg.parse(input, based_city: "SVQ")
+
+if result.success?
+  result.trips.each do |trip|
+    puts "Trip to #{trip.destination_iata}"
+    puts "Duration: #{trip.duration} seconds"
+
+    trip.segments.each do |segment|
+      case segment.type
+      when :flight
+        puts "  Flight: #{segment.origin_iata} -> #{segment.destination_iata}"
+      when :train
+        puts "  Train: #{segment.origin_iata} -> #{segment.destination_iata}"
+      when :hotel
+        puts "  Hotel at #{segment.location_iata}"
+      end
+    end
+  end
+else
+  puts "Errors: #{result.errors.join(', ')}"
+end
+```
+
+### Time Zone Configuration
+
+By default, the time zone is inferred from the base city's IATA code. You can override this:
+
+```ruby
+Reseg.format(input, based_city: "SVQ", time_zone: "Europe/Madrid")
+```
