@@ -35,6 +35,8 @@ module Reseg
         else
           raise ParsingError, "Unknown segment type at line #{@line_number}: #{@segment_line.inspect}"
         end
+      rescue Core::Segment::ValidationError => e
+        raise ParsingError, "Invalid segment line #{@line_number}: #{e.message}"
       end
 
       private

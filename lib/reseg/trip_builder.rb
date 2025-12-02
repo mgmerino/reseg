@@ -8,10 +8,9 @@ module Reseg
   #   based_city, and might be closed with a flight or train segment with
   #   destination in based_city.
   class TripBuilder
-    class ValidationError < StandardError; end
+    class BuildError < StandardError; end
 
-    attr_accessor :errors
-    attr_reader :trips, :segments
+    attr_reader :trips, :segments, :errors
 
     # Initializes a new TripBuilder object.
     #
@@ -27,15 +26,17 @@ module Reseg
 
     # Builds the trips from the segments.
     #
-    # @return [Boolean] true if all trips were built successfully, false otherwise.
+    # @return [Boolean] true if all trips were built successfully,false otherwise.
     def build
+      raise BuildError, "No flight/train segments found: cannot infer any trips" if moving_segments.empty?
+
       build_moving_segments
       validate_based_city!(moving_segments)
 
       build_hotel_segments
 
       @errors.empty?
-    rescue ValidationError => e
+    rescue BuildError => e
       @errors << e.message
 
       false
@@ -53,7 +54,7 @@ module Reseg
           close_trip(current_trip, segment)
           current_trip = nil
         elsif flight_connection?(current_trip, segment)
-          add_flight_connection(current_trip, segment)
+          current_trip = add_flight_connection(current_trip, segment)
         elsif segment.origin_iata == current_trip.last_segment.destination_iata
           add_segment_to_trip(current_trip, segment)
         else
@@ -113,6 +114,12 @@ module Reseg
       segment.is_a_connection = true
       trip.add_segment(segment)
       trip.destination_iata = trip.last_segment.destination_iata
+
+      next_segment = moving_segments[moving_segments.index(segment) + 1]
+
+      return nil if next_segment.nil? || next_segment.origin_iata != segment.destination_iata
+
+      trip
     end
 
     def add_segment_to_trip(trip, segment)
@@ -125,12 +132,14 @@ module Reseg
     end
 
     def flight_connection?(trip, segment)
-      trip.last_segment.starts_at + 24.hours > segment.starts_at &&
-        trip.last_segment.destination_iata == segment.origin_iata
+      return false if trip.last_segment.type == :hotel
+
+      (trip.last_segment.starts_at + 24.hours > segment.starts_at &&
+        trip.last_segment.destination_iata == segment.origin_iata) ||
+        trip.last_segment.is_a_connection
     end
 
     def validate_based_city!(moving_segments)
-      raise ValidationError, "No flight/train segments found: cannot infer any trips" if moving_segments.empty?
       # based city matches the first segment origin
       return if moving_segments.first.origin_iata == @based_city
 
@@ -146,7 +155,7 @@ module Reseg
       candidates = guess_base_candidates(moving_segments)
       msg = "Based city #{@based_city} does not match any segment origin."
       msg << "Possible base cities: #{candidates.join(", ")}" if candidates.any?
-      raise ValidationError, msg
+      raise BuildError, msg
     end
 
     def guess_base_candidates(segments)
