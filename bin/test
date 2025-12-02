@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "reseg"
+
+based_city = ENV["BASED"]
+
+if based_city.nil?
+  puts "Error: BASED is required"
+  exit 1
+end
+puts Reseg.format(File.open("spec/fixtures/test_input.txt"), based_city:)
