@@ -35,19 +35,7 @@ module Reseg
 
           next if line_content.empty?
 
-          case line_content
-          when RESERVATION_START_PATTERN
-            yield Statement.new(type: Statement::RESERVATION_START, value: nil, line_number:, raw: raw_line)
-          when SEGMENT_PATTERN
-            if (match = line_content.match(/\ASEGMENT:\s+(.+)/i))
-              value = match[1]
-              yield Statement.new(type: Statement::SEGMENT_LINE, value:, line_number:, raw: raw_line)
-            else
-              yield Statement.new(type: Statement::UNKNOWN, value: line_content, line_number:, raw: raw_line)
-            end
-          else
-            yield Statement.new(type: Statement::UNKNOWN, value: line_content, line_number:, raw: raw_line)
-          end
+          yield processed_line(line_content, line_number, raw_line)
         end
       end
 
@@ -61,6 +49,22 @@ module Reseg
           StringIO.new(input)
         else
           raise ArgumentError, "Input type not supported: #{input.class}"
+        end
+      end
+
+      def processed_line(line_content, line_number, raw_line)
+        case line_content
+        when RESERVATION_START_PATTERN
+          Statement.new(type: Statement::RESERVATION_START, value: nil, line_number:, raw: raw_line)
+        when SEGMENT_PATTERN
+          if (match = line_content.match(/\ASEGMENT:\s+(.+)/i))
+            value = match[1]
+            Statement.new(type: Statement::SEGMENT_LINE, value:, line_number:, raw: raw_line)
+          else
+            Statement.new(type: Statement::UNKNOWN, value: line_content, line_number:, raw: raw_line)
+          end
+        else
+          Statement.new(type: Statement::UNKNOWN, value: line_content, line_number:, raw: raw_line)
         end
       end
     end
