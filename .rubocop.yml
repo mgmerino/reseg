@@ -6,9 +6,14 @@ Style/StringLiterals:
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+Metrics/ClassLength:
+  Max: 120
 
 Metrics/BlockLength:
-  Max: 90
+  Max: 100
 
 Metrics/MethodLength:
   Max: 20
+
+Metrics/ModuleLength:
+  Max: 120

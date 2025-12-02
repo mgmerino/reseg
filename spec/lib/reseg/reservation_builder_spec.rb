@@ -33,11 +33,12 @@ module Reseg
 
       context "when the statements are valid" do
         let(:statements) do
-          [Parsing::Statement.new(type: Parsing::Statement::RESERVATION_START, value: nil, line_number: 1, raw: "START"),
-           Parsing::Statement.new(type: Parsing::Statement::SEGMENT_LINE, value: "Segment 1", line_number: 2,
-                                  raw: "Segment 1"),
-           Parsing::Statement.new(type: Parsing::Statement::SEGMENT_LINE, value: "Segment 2", line_number: 3,
-                                  raw: "Segment 2")]
+          [Parsing::Statement.new(type: Parsing::Statement::RESERVATION_START,
+                                  value: nil, line_number: 1, raw: "START"),
+           Parsing::Statement.new(type: Parsing::Statement::SEGMENT_LINE,
+                                  value: "Segment 1", line_number: 2, raw: "Segment 1"),
+           Parsing::Statement.new(type: Parsing::Statement::SEGMENT_LINE,
+                                  value: "Segment 2", line_number: 3, raw: "Segment 2")]
         end
 
         it "builds reservations and segments from statements" do

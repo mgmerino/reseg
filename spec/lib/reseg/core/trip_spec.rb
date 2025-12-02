@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Reseg
   module Core
+    # rubocop:disable Metrics/BlockLength
     RSpec.describe Trip do
       let(:trip) { described_class.new(based_city: "MAD") }
       let(:from_date) { Time.parse("2026-01-01 10:00:00") }
@@ -181,4 +183,6 @@ module Reseg
       end
     end
   end
+  # rubocop:enable Metrics/BlockLength
 end
+# rubocop:enable Metrics/ModuleLength

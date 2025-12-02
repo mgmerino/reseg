@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Reseg
+  # rubocop:disable Metrics/BlockLength
   RSpec.describe TripBuilder do
     let(:based_city) { "MAD" }
     let(:segment1) do
@@ -238,4 +240,6 @@ module Reseg
       end
     end
   end
+  # rubocop:enable Metrics/BlockLength
 end
+# rubocop:enable Metrics/ModuleLength
