@@ -2,12 +2,13 @@
 
 A Ruby gem to parse and format REservation SEGments into organized trips.
 
-## TLDR; Test entrypoint
+## TLDR; Technical challenge entrypoint
 
-To validate the code test, run:
+To validate the technical challenge, run:
 ```
 BASED=SVQ bin/test
 ```
+This will load and parse the input in https://github.com/mgmerino/reseg/blob/main/spec/fixtures/test_input.txt
 
 ## Description
 
