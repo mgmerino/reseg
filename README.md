@@ -21,7 +21,13 @@ RESERVATION
   SEGMENT: Hotel BCN 2025-01-05 -> 2025-01-10
 ```
 
-groups them into trips based on a traveler's home base city, and outputs human-readable itineraries.
+groups them into trips based on a traveler's home base city, and outputs human-readable itineraries:
+```
+TRIP TO BCN
+Flight from SVQ to BCN at 2025-01-05 20:40 to 22:10
+Hotel at BCN on 2025-01-05 to 2025-01-10
+Flight from BCN to SVQ at 2025-01-10 10:30 to 11:50
+```
 
 ### Time Zone Configuration
 
